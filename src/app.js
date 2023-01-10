@@ -15,15 +15,15 @@ db.sync({alter: true})
     .then(() => console.log("Base sicronizada"))
     .catch((error) => console.log(error));
 
-initModels()
+initModels();
 
-const app = express()
+const app = express();
 app.use(express.json());
 
 
 app.get("/", (req, res) => {
     res.status(200).json({message: "Bienbenido"})
-})
+});
 
 
 ///////////////////////USERS////////////////////
@@ -150,18 +150,32 @@ app.post('/todos', async (req, res) =>{
     }
 });
 
-app.put("todos/:id", async (req, res) =>{
+
+////// Actualizar tareas
+app.put("/todos/:id", async (req, res) => {
     try {
-        const {id} = req.params;
-        const data = req.body;
-        const result = await Tasks.update(data, {
-            where: {id}
+      // Obtener el id de la tarea a partir de la ruta
+      const { id } = req.params;
+      // Obtener el objeto que contiene los campos a actualizar
+      const data = req.body;
+      // Validar que el objeto data solo tenga una propiedad y que esa propiedad sea isComplete
+      if (Object.keys(data).length !== 1 || !data.hasOwnProperty("isComplete")) {
+        // Si la validación falla, enviar un error de respuesta
+        return res.status(400).json({
+          error: "Sólo se puede actualizar el campo isComplete",
         });
-        res.status(200).json(result);   
+      }
+      // Actualizar la tarea con el ORM
+      const result = await Tasks.update(data, {
+        where: { id },
+      });
+      // Enviar una respuesta de éxito con el resultado de la actualización
+      res.status(200).json(result);
     } catch (error) {
-        console.log(error);
+      console.log(error);
     }
 });
+  
 
 
 app.delete("/todos/:id", async (req, res) => {
@@ -174,7 +188,7 @@ app.delete("/todos/:id", async (req, res) => {
     } catch (error) {
         console.log(error);
     }
-})
+});
 
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en el puerto ${PORT}`);
